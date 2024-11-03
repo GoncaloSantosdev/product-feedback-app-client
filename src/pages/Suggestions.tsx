@@ -15,7 +15,7 @@ const Suggestions = () => {
 
         <div className="lg:overflow-y-auto lg:flex-1 mt-8 mx-4 md:mx-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent hover:scrollbar-thumb-slate-400">
           {data?.productRequests?.map((feedback) => (
-            <FeedbackCard feedback={feedback} />
+            <FeedbackCard feedback={feedback} key={feedback.id} />
           ))}
         </div>
       </div>

@@ -4,3 +4,4 @@ export { default as Header } from "./Header";
 export { default as FeedbackCard } from "./FeedbackCard";
 // Shared
 export { default as Button } from "./shared/Button";
+export { default as FeedbackComments } from "./shared/FeedbackComments";

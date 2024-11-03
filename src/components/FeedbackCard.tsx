@@ -1,7 +1,11 @@
+// Components
+import { Button } from ".";
+// React Router
+import { Link } from "react-router-dom";
+// Images
 import commentsIcon from "../assets/shared/icon-comments.svg";
 import arrowUpIcon from "../assets/shared/icon-arrow-up.svg";
 import emptyIllustration from "../assets/suggestions/illustration-empty.svg";
-import Button from "./shared/Button";
 
 type ProductRequest = {
   id: number;
@@ -17,6 +21,7 @@ type Comment = {
   id: number;
   content: string;
   user: {
+    image: string;
     name: string;
     username: string;
   };
@@ -61,7 +66,9 @@ const FeedbackCard = ({ feedback }: FeedbackCardProps) => {
         </div>
 
         <div>
-          <h3 className="text-[#3A4374] font-bold mb-2">{feedback?.title}</h3>
+          <Link to={`/feedback-detail/${feedback.id}`}>
+            <h3 className="text-[#3A4374] font-bold mb-2">{feedback?.title}</h3>
+          </Link>
           <p className="text-[#647196] mb-2">{feedback?.description}</p>
           <div className="bg-[#F2F4FF] text-[#4661E6] px-4 py-1.5 rounded-lg text-sm font-semibold inline-block capitalize mt-2">
             {feedback?.category}
