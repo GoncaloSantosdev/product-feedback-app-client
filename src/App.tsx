@@ -15,7 +15,7 @@ const App = () => {
       <Route path="/suggestions" element={<Suggestions />} />
       <Route path="/feedback-detail/:feedbackId" element={<FeedbackDetail />} />
       <Route path="/new-feedback" element={<NewFeedback />} />
-      <Route path="/edit-feebdack" element={<EditFeedback />} />
+      <Route path="/edit-feedback/:feedbackId" element={<EditFeedback />} />
       <Route path="/roadmap" element={<Roadmap />} />
     </Routes>
   );

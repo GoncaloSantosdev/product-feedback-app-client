@@ -47,7 +47,9 @@ const FeedbackDetail = () => {
         >
           <img src={ArrowLeft} alt="Arrow Left" /> Go Back
         </Link>
-        <Button variant="secondary">Edit Feedback</Button>
+        <Link to={`/edit-feedback/${feedbackId}`}>
+          <Button variant="secondary">Edit Feedback</Button>
+        </Link>
       </div>
 
       {feedback && (
