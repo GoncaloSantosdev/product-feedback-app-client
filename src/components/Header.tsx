@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+// Components
 import { Button } from "./";
+// Images
 import lightbulbIcon from "../assets/suggestions/icon-suggestions.svg";
 
 const Header = () => {
@@ -76,8 +79,9 @@ const Header = () => {
           )}
         </div>
       </div>
-
-      <Button variant="primary">+ Add Feedback</Button>
+      <Link to={"/new-feedback"}>
+        <Button variant="primary">+ Add Feedback</Button>
+      </Link>
     </div>
   );
 };
