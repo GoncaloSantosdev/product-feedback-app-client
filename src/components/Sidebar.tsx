@@ -1,5 +1,8 @@
 // React Icons
 import { useState } from "react";
+// React Router
+import { Link } from "react-router-dom";
+// React Icons
 import { GiHamburgerMenu } from "react-icons/gi";
 import { IoCloseSharp } from "react-icons/io5";
 
@@ -81,9 +84,9 @@ const Sidebar = () => {
         <div className="flex-1 h-[178px] bg-white rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-lg text-gray-700">Roadmap</h3>
-            <a href="#" className="text-blue-600 underline text-sm">
+            <Link to={"/roadmap"} className="text-blue-600 underline text-sm">
               View
-            </a>
+            </Link>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -141,9 +144,9 @@ const SidebarContent = () => {
       <div className="bg-white rounded-lg p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-lg text-gray-700">Roadmap</h3>
-          <a href="#" className="text-blue-600 underline text-sm">
+          <Link to={"/roadmap"} className="text-blue-600 underline text-sm">
             View
-          </a>
+          </Link>
         </div>
 
         <div className="flex flex-col gap-3">

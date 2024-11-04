@@ -21,7 +21,7 @@ const NewFeedback = () => {
         <img src={ArrowLeft} alt="Arrow Left" /> Go Back
       </Link>
 
-      <div className="bg-white p-6 rounded-lg mt-12 relative">
+      <div className="bg-white px-6 py-12 rounded-lg mt-12 relative">
         <div className="absolute top-[-24px]">
           <img src={iconNewFeedback} alt="New Feedback" className="w-14" />
         </div>
@@ -111,9 +111,9 @@ const NewFeedback = () => {
             <textarea className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 h-[130px]" />
           </FormField>
 
-          <div className="mt-10 flex gap-4 justify-end">
-            <Button variant="warning">Cancel</Button>
+          <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end">
             <Button>Add Feedback</Button>
+            <Button variant="warning">Cancel</Button>
           </div>
         </form>
       </div>

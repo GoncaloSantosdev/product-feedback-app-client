@@ -56,7 +56,7 @@ const EditFeedback = () => {
         <img src={ArrowLeft} alt="Arrow Left" /> Go Back
       </Link>
 
-      <div className="bg-white p-6 rounded-lg mt-12 relative">
+      <div className="bg-white px-6 py-12 rounded-lg mt-12 relative">
         <div className="absolute top-[-24px]">
           <img src={iconEditFeedback} alt="New Feedback" className="w-14" />
         </div>
@@ -214,10 +214,10 @@ const EditFeedback = () => {
             />
           </FormField>
 
-          <div className="mt-10 flex w-full">
+          <div className="mt-8 flex flex-col md:flex-row w-full gap-y-4">
             <Button variant="danger">Delete</Button>
 
-            <div className="flex justify-end w-full gap-x-4">
+            <div className="flex flex-col md:flex-row justify-end w-full gap-x-4 gap-y-4">
               <Button variant="warning">Cancel</Button>
               <Button>Add Feedback</Button>
             </div>

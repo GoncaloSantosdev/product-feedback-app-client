@@ -3,7 +3,7 @@ import { data } from "../data";
 
 const Suggestions = () => {
   return (
-    <section className="md:p-10 lg:flex lg:gap-x-8 xl:gap-x-0 max-w-7xl mx-auto h-screen">
+    <div className="md:p-10 lg:flex lg:gap-x-8 xl:gap-x-0 max-w-7xl mx-auto h-screen">
       <div className="lg:sticky lg:top-10 lg:h-fit lg:w-1/4">
         <Sidebar />
       </div>
@@ -19,7 +19,7 @@ const Suggestions = () => {
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
