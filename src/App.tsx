@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import {
   EditFeedback,
   FeedbackDetail,
+  LandingPage,
   NewFeedback,
   Roadmap,
   Suggestions,
@@ -11,7 +12,7 @@ import {
 const App = () => {
   return (
     <Routes>
-      <Route path="/" element={"Landing Page"} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/suggestions" element={<Suggestions />} />
       <Route path="/feedback-detail/:feedbackId" element={<FeedbackDetail />} />
       <Route path="/new-feedback" element={<NewFeedback />} />
