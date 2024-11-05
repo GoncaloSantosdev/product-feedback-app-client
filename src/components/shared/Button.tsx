@@ -1,10 +1,16 @@
 interface ButtonProps {
   variant?: "primary" | "secondary" | "danger" | "warning"; // Added "warning" variant
   onClick?: () => void;
+  type?: "submit" | "button" | "reset";
   children: React.ReactNode;
 }
 
-const Button = ({ variant = "primary", onClick, children }: ButtonProps) => {
+const Button = ({
+  variant = "primary",
+  onClick,
+  children,
+  type,
+}: ButtonProps) => {
   const bgColor =
     variant === "primary"
       ? "bg-[#AD1FEA]"
@@ -19,6 +25,7 @@ const Button = ({ variant = "primary", onClick, children }: ButtonProps) => {
   return (
     <button
       onClick={onClick}
+      type={type}
       className={`${bgColor} text-white px-5 py-3 rounded-lg hover:opacity-90 font-bold text-sm cursor-pointer`}
     >
       {children}

@@ -1,35 +1,14 @@
-import { Button } from ".";
 import { Link } from "react-router-dom";
+import { FeedbackItem } from "../types";
 // Images
 import commentsIcon from "../assets/shared/icon-comments.svg";
 import arrowUpIcon from "../assets/shared/icon-arrow-up.svg";
-import emptyIllustration from "../assets/suggestions/illustration-empty.svg";
 
-// Define types
-type ProductRequest = {
-  id: number;
-  title: string;
-  category: string;
-  upvotes: number;
-  status: string;
-  description: string;
-  comments?: readonly Comment[];
-};
-
-type Comment = {
-  id: number;
-  content: string;
-  user: {
-    image: string;
-    name: string;
-    username: string;
-  };
-};
-
+// Define props interface
 interface FeedbackCardProps {
-  feedback: ProductRequest;
+  feedback: FeedbackItem;
   mobile?: boolean;
-  inRoadmap?: boolean; // Added this prop
+  inRoadmap?: boolean;
 }
 
 const FeedbackCard = ({
@@ -37,32 +16,12 @@ const FeedbackCard = ({
   mobile = false,
   inRoadmap = false,
 }: FeedbackCardProps) => {
-  if (!feedback) {
-    return (
-      <article className="bg-white rounded-lg p-10 mb-4 text-center flex flex-col items-center">
-        <img
-          src={emptyIllustration}
-          alt="No feedback"
-          className="mb-10 w-[130px] h-[136px]"
-        />
-        <h2 className="text-[#3A4374] font-bold text-xl mb-4">
-          There is no feedback yet.
-        </h2>
-        <p className="text-[#647196] mb-6 max-w-md">
-          Got a suggestion? Found a bug that needs to be squashed? We love
-          hearing about new ideas to improve our app.
-        </p>
-
-        <Button variant="primary">+ Add Feedback</Button>
-      </article>
-    );
-  }
-
   // Map status to color
   const statusColors: Record<string, string> = {
-    Planned: "#F49F85",
-    "In-Progress": "#AD1FEA",
-    Live: "#62BCFA",
+    suggestion: "#62BCFA",
+    planned: "#F49F85",
+    "in-progress": "#AD1FEA",
+    live: "#62BCFA",
   };
 
   const borderTopColor = inRoadmap
@@ -83,7 +42,7 @@ const FeedbackCard = ({
             className="w-2 h-2 rounded-full mr-2"
             style={{ backgroundColor: borderTopColor }}
           ></span>
-          <span className="text-sm font-semibold text-[#647196]">
+          <span className="text-sm font-semibold text-[#647196] capitalize">
             {feedback.status}
           </span>
         </div>
@@ -109,8 +68,8 @@ const FeedbackCard = ({
         )}
 
         {/* Content */}
-        <div>
-          <Link to={`/feedback-detail/${feedback.id}`}>
+        <div className="w-full">
+          <Link to={`/feedback-detail/${feedback._id}`}>
             <h3 className="text-[#3A4374] font-bold mb-2">{feedback.title}</h3>
           </Link>
           <p className="text-[#647196] mb-2">{feedback.description}</p>
@@ -131,29 +90,6 @@ const FeedbackCard = ({
       </div>
 
       {/* Mobile Upvote and Comments */}
-      {!mobile && (
-        <div className="flex flex-row justify-between items-center mt-4 md:hidden">
-          {/* Mobile Upvote Button */}
-          <div>
-            <button className="bg-[#F2F4FF] hover:bg-gray-200 rounded-lg px-4 py-3 flex flex-row items-center">
-              <img src={arrowUpIcon} alt="Upvote" className="mr-2" />
-              <span className="font-bold text-[#3A4374] text-sm">
-                {feedback.upvotes}
-              </span>
-            </button>
-          </div>
-
-          {/* Mobile Comments */}
-          <div className="flex items-center gap-2">
-            <img src={commentsIcon} alt="Comments" />
-            <span className="font-bold text-[#3A4374]">
-              {feedback.comments?.length || 0}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Forced Mobile Upvote and Comments */}
       {mobile && (
         <div className="flex flex-row justify-between items-center mt-4">
           {/* Mobile Upvote Button */}

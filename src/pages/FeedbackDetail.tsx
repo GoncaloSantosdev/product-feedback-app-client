@@ -1,42 +1,38 @@
 import { useParams, Link } from "react-router-dom";
 // Components
 import { Button, FeedbackCard, FeedbackComments } from "../components";
-// Data
-import { data } from "../data";
 // Assets
 import ArrowLeft from "../assets/shared/icon-arrow-left.svg";
-
-type Comment = {
-  id: number;
-  content: string;
-  user: {
-    image: string;
-    name: string;
-    username: string;
-  };
-};
-
-type FeedbackItem = {
-  id: number;
-  title: string;
-  category: string;
-  upvotes: number;
-  status: string;
-  description: string;
-  comments: Array<Comment>;
-};
+import { useQuery } from "@tanstack/react-query";
+import { getFeedback } from "../services/feedbacks/api";
+import { FeedbackItem } from "../types";
 
 const FeedbackDetail = () => {
-  const { feedbackId } = useParams();
+  const { feedbackId } = useParams<{ feedbackId: string }>();
+
+  // Move useQuery to the top level
+  const {
+    isError,
+    isLoading,
+    data: feedback,
+    error,
+  } = useQuery<FeedbackItem, Error>({
+    queryKey: ["getFeedback", feedbackId],
+    queryFn: () => getFeedback(feedbackId!),
+    enabled: !!feedbackId,
+  });
 
   if (!feedbackId) {
     return <div>No Feedback Found</div>;
   }
 
-  // Update the feedback variable type
-  const feedback = data?.productRequests.find(
-    (item) => typeof item.id === "number" && item.id === Number(feedbackId)
-  ) as FeedbackItem | undefined;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError || !feedback) {
+    return <div>Error: {error?.message || "Feedback not found"}</div>;
+  }
 
   return (
     <div className="max-w-4xl px-6 mx-auto py-8">
@@ -52,12 +48,8 @@ const FeedbackDetail = () => {
         </Link>
       </div>
 
-      {feedback && (
-        <>
-          <FeedbackCard feedback={feedback} />
-          <FeedbackComments comments={feedback.comments} />
-        </>
-      )}
+      <FeedbackCard feedback={feedback} />
+      <FeedbackComments comments={feedback.comments} />
     </div>
   );
 };

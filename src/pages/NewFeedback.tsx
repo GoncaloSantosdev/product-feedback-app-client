@@ -1,16 +1,61 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 // Components
 import { Button, FormField } from "../components";
+// React Hook Form and Zod
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+// Validation Schema
+import {
+  FeedbackData,
+  feedbackFormSchema,
+} from "../validation/feedbackFormValidation";
+// React Query & API
+import { useMutation } from "@tanstack/react-query";
+import { createFeedbackAPI } from "../services/feedbacks/api";
 // Assets
 import ArrowLeft from "../assets/shared/icon-arrow-left.svg";
 import iconNewFeedback from "../assets/shared/icon-new-feedback.svg";
 
-const NewFeedback = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState("Feature");
+const categoryOptions = ["Feature", "UI", "UX", "Enhancement", "Bug"] as const;
+type Category = (typeof categoryOptions)[number];
 
-  const categoryOptions = ["Feature", "UI", "UX", "Enhancement", "Bug"];
+const NewFeedback = () => {
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FeedbackData>({
+    resolver: zodResolver(feedbackFormSchema),
+    defaultValues: {
+      category: "Feature",
+    },
+  });
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState<Category>("Feature");
+
+  // Update the form data when 'selected' changes
+  useEffect(() => {
+    setValue("category", selected);
+  }, [selected, setValue]);
+
+  const feedbackMutation = useMutation({
+    mutationKey: ["createFeedback"],
+    mutationFn: createFeedbackAPI,
+  });
+
+  // Create feedback mutation
+  const onSubmit = (data: FeedbackData) => {
+    feedbackMutation.mutate(data);
+  };
+
+  // states
+  const isLoading = feedbackMutation.isPending;
+  const isError = feedbackMutation.isError;
+  const isSuccess = feedbackMutation.isSuccess;
+  const error = feedbackMutation.error;
 
   return (
     <div className="max-w-2xl px-6 mx-auto py-12">
@@ -26,18 +71,32 @@ const NewFeedback = () => {
           <img src={iconNewFeedback} alt="New Feedback" className="w-14" />
         </div>
 
+        {isLoading && <p>Loading...</p>}
+        {isSuccess && <p>Feedback created successfully</p>}
+        {isError && <p>{error?.message}</p>}
+
         <h3 className="text-lg font-bold text-[#3A4374] mt-8">
           Create New Feedback
         </h3>
-        <form className="mt-8">
+        <form className="mt-8" onSubmit={handleSubmit(onSubmit)}>
           <FormField
             inputTitle="Feedback Title"
             inputDesc="Add a short, descriptive headline"
           >
             <input
               type="text"
-              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3"
+              id="title"
+              required
+              {...register("title")}
+              className={`w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 ${
+                errors.title ? "border-red-500" : ""
+              }`}
             />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.title.message}
+              </p>
+            )}
           </FormField>
 
           <FormField
@@ -47,7 +106,9 @@ const NewFeedback = () => {
           >
             <div
               onClick={() => setIsOpen(!isOpen)}
-              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 flex items-center justify-between"
+              className={`w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 flex items-center justify-between cursor-pointer ${
+                errors.category ? "border-red-500" : ""
+              }`}
             >
               {selected}
               <svg
@@ -66,7 +127,7 @@ const NewFeedback = () => {
               </svg>
             </div>
             {isOpen && (
-              <div className="absolute mt-4 w-full bg-white rounded-md shadow-lg">
+              <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg z-10">
                 <ul className="py-1">
                   {categoryOptions.map((category) => (
                     <li
@@ -101,6 +162,11 @@ const NewFeedback = () => {
                 </ul>
               </div>
             )}
+            {errors.category && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.category.message}
+              </p>
+            )}
           </FormField>
 
           <FormField
@@ -108,12 +174,25 @@ const NewFeedback = () => {
             inputDesc="Include any specific comments on what should be improved, added, etc."
             containerStyles="mt-10"
           >
-            <textarea className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 h-[130px]" />
+            <textarea
+              required
+              {...register("description")}
+              className={`w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 h-[130px] ${
+                errors.description ? "border-red-500" : ""
+              }`}
+            />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.description.message}
+              </p>
+            )}
           </FormField>
 
           <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end">
-            <Button>Add Feedback</Button>
-            <Button variant="warning">Cancel</Button>
+            <Button type="submit">Add Feedback</Button>
+            <Button variant="warning" type="reset">
+              Cancel
+            </Button>
           </div>
         </form>
       </div>
