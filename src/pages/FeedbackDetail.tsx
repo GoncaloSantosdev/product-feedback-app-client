@@ -1,16 +1,24 @@
+// React Router
 import { useParams, Link } from "react-router-dom";
+// React Query
+import { useQuery } from "@tanstack/react-query";
 // Components
-import { Button, FeedbackCard, FeedbackComments } from "../components";
+import {
+  Button,
+  FeedbackCard,
+  FeedbackComments,
+  LoadingSpinner,
+} from "../components";
+// API functions
+import { getFeedback } from "../services/feedbacks/api";
+// Types
+import { FeedbackItem } from "../types";
 // Assets
 import ArrowLeft from "../assets/shared/icon-arrow-left.svg";
-import { useQuery } from "@tanstack/react-query";
-import { getFeedback } from "../services/feedbacks/api";
-import { FeedbackItem } from "../types";
 
 const FeedbackDetail = () => {
   const { feedbackId } = useParams<{ feedbackId: string }>();
 
-  // Move useQuery to the top level
   const {
     isError,
     isLoading,
@@ -27,7 +35,7 @@ const FeedbackDetail = () => {
   }
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (isError || !feedback) {
@@ -36,6 +44,7 @@ const FeedbackDetail = () => {
 
   return (
     <div className="max-w-4xl px-6 mx-auto py-8">
+      {/* Navigation */}
       <div className="flex justify-between items-center mb-6">
         <Link
           to="/suggestions"
@@ -48,7 +57,10 @@ const FeedbackDetail = () => {
         </Link>
       </div>
 
+      {/* Feedback Card */}
       <FeedbackCard feedback={feedback} />
+
+      {/* Comments Section */}
       <FeedbackComments comments={feedback.comments} />
     </div>
   );

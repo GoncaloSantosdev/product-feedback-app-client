@@ -20,3 +20,16 @@ export const getFeedback = async (
   const response = await axios.get(`${BASE_URL}/${feedbackId}`);
   return response.data.feedback;
 };
+
+export const updateFeedback = async (
+  feedbackId: string,
+  feedbackData: FeedbackData
+) => {
+  const response = await axios.put(`${BASE_URL}/${feedbackId}`, feedbackData);
+  return response.data.feedback;
+};
+
+export const deleteFeedback = async (feedbackId: string) => {
+  const response = await axios.delete(`${BASE_URL}/${feedbackId}`);
+  return response.data.feedback;
+};

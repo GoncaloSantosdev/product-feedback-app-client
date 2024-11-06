@@ -1,51 +1,141 @@
-import { Link, useParams } from "react-router-dom";
-import { useState } from "react";
-// Data
-import { data } from "../data";
+import { useState, useEffect } from "react";
+// React Router
+import { Link, useParams, useNavigate } from "react-router-dom";
+// React Query
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// React Hook Form and validation
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  FeedbackData,
+  feedbackFormSchema,
+} from "../validation/feedbackFormValidation";
+// API functions
+import {
+  getFeedback,
+  updateFeedback,
+  deleteFeedback,
+} from "../services/feedbacks/api";
 // Components
 import { Button, FormField } from "../components";
+// Types
+import { FeedbackItem } from "../types";
 // Assets
 import ArrowLeft from "../assets/shared/icon-arrow-left.svg";
 import iconEditFeedback from "../assets/shared/icon-edit-feedback.svg";
 
-type Comment = {
-  id: number;
-  content: string;
-  user: {
-    image: string;
-    name: string;
-    username: string;
-  };
-};
-
-type FeedbackItem = {
-  id: number;
-  title: string;
-  category: string;
-  upvotes: number;
-  status: string;
-  description: string;
-  comments: Array<Comment>;
-};
-
 const EditFeedback = () => {
+  const { feedbackId } = useParams<{ feedbackId: string }>();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Fetch the existing feedback data
+  const {
+    isError,
+    isLoading,
+    data: feedback,
+    error,
+  } = useQuery<FeedbackItem, Error>({
+    queryKey: ["getFeedback", feedbackId],
+    queryFn: () => getFeedback(feedbackId!),
+    enabled: !!feedbackId,
+  });
+
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("Feature");
-  const [selectedStatus, setSelectedStatus] = useState("Suggestion");
 
-  const categoryOptions = ["Feature", "UI", "UX", "Enhancement", "Bug"];
-  const statusOptions = ["Suggestion", "Planned", "In-Progress", "Live"];
+  // Initialize React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FeedbackData>({
+    resolver: zodResolver(feedbackFormSchema),
+  });
 
-  const { feedbackId } = useParams();
+  // Populate form fields with existing data
+  useEffect(() => {
+    if (feedback) {
+      setValue("title", feedback.title);
+      setValue("category", feedback.category as FeedbackData["category"]);
+      setValue("status", feedback.status as FeedbackData["status"]);
+      setValue("description", feedback.description);
+    }
+  }, [feedback, setValue]);
 
+  // Watch form values
+  const selectedCategory = watch("category");
+  const selectedStatus = watch("status");
+
+  // Category and Status options with capitalized status values
+  const categoryOptions = [
+    { value: "Feature", label: "Feature" },
+    { value: "UI", label: "UI" },
+    { value: "UX", label: "UX" },
+    { value: "Enhancement", label: "Enhancement" },
+    { value: "Bug", label: "Bug" },
+  ] as const;
+
+  const statusOptions = [
+    { value: "Suggestion", label: "Suggestion" },
+    { value: "Planned", label: "Planned" },
+    { value: "In-Progress", label: "In-Progress" },
+    { value: "Live", label: "Live" },
+  ] as const;
+
+  // Mutation for updating feedback
+  const updateFeedbackMutation = useMutation({
+    mutationKey: ["updateFeedback", feedbackId],
+    mutationFn: (data: FeedbackData) => updateFeedback(feedbackId!, data),
+    onSuccess: () => {
+      navigate(`/feedback-detail/${feedbackId}`);
+    },
+    onError: (error) => {
+      console.error("Update failed", error);
+    },
+  });
+
+  // Mutation for deleting feedback
+  const deleteFeedbackMutation = useMutation({
+    mutationKey: ["deleteFeedback", feedbackId],
+    mutationFn: () => deleteFeedback(feedbackId!),
+    onSuccess: () => {
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["getFeedbacks"] });
+      navigate("/suggestions");
+    },
+    onError: (error) => {
+      console.error("Delete failed", error);
+    },
+  });
+
+  // Handle form submission
+  const onSubmit = (data: FeedbackData) => {
+    updateFeedbackMutation.mutate(data);
+  };
+
+  // Handle delete action
+  const handleDelete = () => {
+    // Optional: Add a confirmation dialog
+    if (window.confirm("Are you sure you want to delete this feedback?")) {
+      deleteFeedbackMutation.mutate();
+    }
+  };
+
+  // Handle loading and error states
   if (!feedbackId) {
     return <div>No Feedback Found</div>;
   }
-  // Update the feedback variable type
-  const feedback = data?.productRequests.find(
-    (item) => typeof item.id === "number" && item.id === Number(feedbackId)
-  ) as FeedbackItem | undefined;
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError || !feedback) {
+    return <div>Error: {error?.message || "Feedback not found"}</div>;
+  }
 
   return (
     <div className="max-w-2xl px-6 mx-auto py-12">
@@ -58,25 +148,61 @@ const EditFeedback = () => {
 
       <div className="bg-white px-6 py-12 rounded-lg mt-12 relative">
         <div className="absolute top-[-24px]">
-          <img src={iconEditFeedback} alt="New Feedback" className="w-14" />
+          <img src={iconEditFeedback} alt="Edit Feedback" className="w-14" />
         </div>
 
         <h3 className="text-lg font-bold text-[#3A4374] mt-8">
-          Editing ‘{feedback?.title}‘
+          Editing ‘{feedback.title}‘
         </h3>
 
-        <form className="mt-8">
+        {/* Display mutation status */}
+        {updateFeedbackMutation.isError && (
+          <p className="text-red-500">
+            Error updating feedback:{" "}
+            {updateFeedbackMutation.error instanceof Error
+              ? updateFeedbackMutation.error.message
+              : "An error occurred"}
+          </p>
+        )}
+
+        {updateFeedbackMutation.isPending && <p>Updating feedback...</p>}
+
+        {updateFeedbackMutation.isSuccess && (
+          <p className="text-green-500">Feedback updated successfully!</p>
+        )}
+
+        {deleteFeedbackMutation.isError && (
+          <p className="text-red-500">
+            Error deleting feedback:{" "}
+            {deleteFeedbackMutation.error instanceof Error
+              ? deleteFeedbackMutation.error.message
+              : "An error occurred"}
+          </p>
+        )}
+
+        {deleteFeedbackMutation.isPending && <p>Deleting feedback...</p>}
+
+        <form className="mt-8" onSubmit={handleSubmit(onSubmit)}>
+          {/* Feedback Title Field */}
           <FormField
             inputTitle="Feedback Title"
             inputDesc="Add a short, descriptive headline"
           >
             <input
               type="text"
-              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3"
-              defaultValue={feedback?.title}
+              {...register("title")}
+              className={`w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 ${
+                errors.title ? "border-red-500" : ""
+              }`}
             />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.title.message}
+              </p>
+            )}
           </FormField>
 
+          {/* Category Field */}
           <FormField
             inputTitle="Category"
             inputDesc="Choose a category for your feedback"
@@ -84,7 +210,7 @@ const EditFeedback = () => {
           >
             <div
               onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 flex items-center justify-between"
+              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 flex items-center justify-between cursor-pointer"
             >
               {selectedCategory}
               <svg
@@ -103,23 +229,23 @@ const EditFeedback = () => {
               </svg>
             </div>
             {isCategoryOpen && (
-              <div className="absolute mt-4 w-full bg-white rounded-md shadow-lg z-50">
+              <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg z-10">
                 <ul className="py-1">
                   {categoryOptions.map((category) => (
                     <li
-                      key={category}
+                      key={category.value}
                       className={`px-4 py-3 cursor-pointer border-b last:border-b-0 border-gray-200 text-base flex items-center justify-between ${
-                        selectedCategory === category
+                        selectedCategory === category.value
                           ? "text-purple-600"
                           : "text-[#647196]"
                       } hover:text-purple-600`}
                       onClick={() => {
-                        setSelectedCategory(category);
+                        setValue("category", category.value);
                         setIsCategoryOpen(false);
                       }}
                     >
-                      {category}
-                      {selectedCategory === category && (
+                      {category.label}
+                      {selectedCategory === category.value && (
                         <svg
                           width="13"
                           height="11"
@@ -138,8 +264,14 @@ const EditFeedback = () => {
                 </ul>
               </div>
             )}
+            {errors.category && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.category.message}
+              </p>
+            )}
           </FormField>
 
+          {/* Status Field */}
           <FormField
             inputTitle="Update Status"
             inputDesc="Change feedback state"
@@ -147,7 +279,7 @@ const EditFeedback = () => {
           >
             <div
               onClick={() => setIsStatusOpen(!isStatusOpen)}
-              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 flex items-center justify-between"
+              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 flex items-center justify-between cursor-pointer"
             >
               {selectedStatus}
               <svg
@@ -166,23 +298,23 @@ const EditFeedback = () => {
               </svg>
             </div>
             {isStatusOpen && (
-              <div className="absolute mt-4 w-full bg-white rounded-md shadow-lg">
+              <div className="absolute mt-1 w-full bg-white rounded-md shadow-lg z-10">
                 <ul className="py-1">
                   {statusOptions.map((status) => (
                     <li
-                      key={status}
+                      key={status.value}
                       className={`px-4 py-3 cursor-pointer border-b last:border-b-0 border-gray-200 text-base flex items-center justify-between ${
-                        selectedStatus === status
+                        selectedStatus === status.value
                           ? "text-purple-600"
                           : "text-[#647196]"
                       } hover:text-purple-600`}
                       onClick={() => {
-                        setSelectedStatus(status);
+                        setValue("status", status.value);
                         setIsStatusOpen(false);
                       }}
                     >
-                      {status}
-                      {selectedStatus === status && (
+                      {status.label}
+                      {selectedStatus === status.value && (
                         <svg
                           width="13"
                           height="11"
@@ -201,25 +333,47 @@ const EditFeedback = () => {
                 </ul>
               </div>
             )}
+            {errors.status && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.status.message}
+              </p>
+            )}
           </FormField>
 
+          {/* Feedback Detail Field */}
           <FormField
             inputTitle="Feedback Detail"
             inputDesc="Include any specific comments on what should be improved, added, etc."
             containerStyles="mt-10"
           >
             <textarea
-              className="w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 h-[130px]"
-              defaultValue={feedback?.description}
+              {...register("description")}
+              className={`w-full bg-[#F7F8FD] px-4 py-3 rounded mt-3 h-[130px] ${
+                errors.description ? "border-red-500" : ""
+              }`}
             />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.description.message}
+              </p>
+            )}
           </FormField>
 
+          {/* Action Buttons */}
           <div className="mt-8 flex flex-col md:flex-row w-full gap-y-4">
-            <Button variant="danger">Delete</Button>
+            <Button variant="danger" type="button" onClick={handleDelete}>
+              Delete
+            </Button>
 
             <div className="flex flex-col md:flex-row justify-end w-full gap-x-4 gap-y-4">
-              <Button variant="warning">Cancel</Button>
-              <Button>Add Feedback</Button>
+              <Button
+                variant="warning"
+                type="button"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
             </div>
           </div>
         </form>

@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-// Components
-import { Button, FormField } from "../components";
-// React Hook Form and Zod
+// React Router
+import { Link, useNavigate } from "react-router-dom";
+// React Hook Form and validation
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// Validation Schema
 import {
   FeedbackData,
   feedbackFormSchema,
 } from "../validation/feedbackFormValidation";
-// React Query & API
+// React Query
 import { useMutation } from "@tanstack/react-query";
+// API functions
 import { createFeedbackAPI } from "../services/feedbacks/api";
+// Components
+import { Button, FormField, LoadingSpinner } from "../components";
 // Assets
 import ArrowLeft from "../assets/shared/icon-arrow-left.svg";
 import iconNewFeedback from "../assets/shared/icon-new-feedback.svg";
@@ -33,6 +34,7 @@ const NewFeedback = () => {
     },
   });
 
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<Category>("Feature");
 
@@ -46,15 +48,14 @@ const NewFeedback = () => {
     mutationFn: createFeedbackAPI,
   });
 
-  // Create feedback mutation
   const onSubmit = (data: FeedbackData) => {
     feedbackMutation.mutate(data);
+    navigate("/suggestions");
   };
 
-  // states
+  // Mutation states
   const isLoading = feedbackMutation.isPending;
   const isError = feedbackMutation.isError;
-  const isSuccess = feedbackMutation.isSuccess;
   const error = feedbackMutation.error;
 
   return (
@@ -71,14 +72,14 @@ const NewFeedback = () => {
           <img src={iconNewFeedback} alt="New Feedback" className="w-14" />
         </div>
 
-        {isLoading && <p>Loading...</p>}
-        {isSuccess && <p>Feedback created successfully</p>}
+        {isLoading && <LoadingSpinner />}
         {isError && <p>{error?.message}</p>}
 
         <h3 className="text-lg font-bold text-[#3A4374] mt-8">
           Create New Feedback
         </h3>
         <form className="mt-8" onSubmit={handleSubmit(onSubmit)}>
+          {/* Feedback Title Field */}
           <FormField
             inputTitle="Feedback Title"
             inputDesc="Add a short, descriptive headline"
@@ -99,6 +100,7 @@ const NewFeedback = () => {
             )}
           </FormField>
 
+          {/* Category Field */}
           <FormField
             inputTitle="Category"
             inputDesc="Choose a category for your feedback"
@@ -169,6 +171,7 @@ const NewFeedback = () => {
             )}
           </FormField>
 
+          {/* Feedback Detail Field */}
           <FormField
             inputTitle="Feedback Detail"
             inputDesc="Include any specific comments on what should be improved, added, etc."
@@ -188,6 +191,7 @@ const NewFeedback = () => {
             )}
           </FormField>
 
+          {/* Action Buttons */}
           <div className="mt-8 flex flex-col md:flex-row gap-4 justify-end">
             <Button type="submit">Add Feedback</Button>
             <Button variant="warning" type="reset">

@@ -18,10 +18,10 @@ const FeedbackCard = ({
 }: FeedbackCardProps) => {
   // Map status to color
   const statusColors: Record<string, string> = {
-    suggestion: "#62BCFA",
-    planned: "#F49F85",
-    "in-progress": "#AD1FEA",
-    live: "#62BCFA",
+    Suggestion: "#62BCFA",
+    Planned: "#F49F85",
+    "In-Progress": "#AD1FEA",
+    Live: "#62BCFA",
   };
 
   const borderTopColor = inRoadmap

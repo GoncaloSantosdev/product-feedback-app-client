@@ -1,4 +1,6 @@
 // types.ts
+export type FeedbackCategory = "Feature" | "UI" | "UX" | "Enhancement" | "Bug";
+export type FeedbackStatus = "Suggestion" | "Planned" | "In-Progress" | "Live";
 
 // User Type
 export type User = {
@@ -27,9 +29,9 @@ export type Comment = {
 export type FeedbackItem = {
   _id: string;
   title: string;
-  category: string;
+  category: FeedbackCategory;
   upvotes: number;
-  status: "suggestion" | "planned" | "in-progress" | "live";
+  status: FeedbackStatus;
   description: string;
   comments?: Comment[];
 };

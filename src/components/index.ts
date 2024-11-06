@@ -6,3 +6,4 @@ export { default as FeedbackCard } from "./FeedbackCard";
 export { default as Button } from "./shared/Button";
 export { default as FeedbackComments } from "./shared/FeedbackComments";
 export { default as FormField } from "./shared/FormField";
+export { default as LoadingSpinner } from "./shared/LoadingSpinner";

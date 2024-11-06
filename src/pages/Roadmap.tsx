@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 // Components
-import { Button, FeedbackCard } from "../components";
+import { Button, FeedbackCard, LoadingSpinner } from "../components";
+// React Query
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// API functions
+import { getFeedbacksAPI, updateFeedback } from "../services/feedbacks/api";
 // Drag and Drop
 import {
   DragDropContext,
@@ -9,100 +13,78 @@ import {
   Draggable,
   DropResult,
 } from "@hello-pangea/dnd";
+// Types
+import { FeedbackItem, FeedbackStatus } from "../types";
 // Assets
 import ArrowLeft from "../assets/shared/icon-arrow-left.svg";
 
-type ProductRequest = {
-  id: number;
-  title: string;
-  category: string;
-  upvotes: number;
-  status: string;
-  description: string;
-  comments?: readonly Comment[];
-};
-
-type Comment = {
-  id: number;
-  content: string;
-  user: {
-    image: string;
-    name: string;
-    username: string;
-  };
-};
-
 type ColumnType = {
   name: string;
-  items: ProductRequest[];
+  items: FeedbackItem[];
 };
 
-const Roadmap = () => {
-  // Initial feedback data
-  const initialData: Record<string, ColumnType> = {
-    Planned: {
-      name: "Planned",
-      items: [
-        {
-          id: 1,
-          title: "New Feature Request",
-          category: "Feature",
-          upvotes: 10,
-          status: "Planned",
-          description: "A detailed description of the new feature.",
-          comments: [],
-        },
-        {
-          id: 2,
-          title: "Improved UI Design",
-          category: "Enhancement",
-          upvotes: 5,
-          status: "Planned",
-          description: "Suggestions for a more user-friendly interface.",
-          comments: [],
-        },
-        {
-          id: 4,
-          title: "Accessibility Improvements",
-          category: "Enhancement",
-          upvotes: 3,
-          status: "Planned",
-          description: "Enhancing accessibility features for better usability.",
-          comments: [],
-        },
-      ],
-    },
-    "In-Progress": {
-      name: "In-Progress",
-      items: [
-        {
-          id: 3,
-          title: "Bug Fix: Login Issue",
-          category: "Bug",
-          upvotes: 8,
-          status: "In-Progress",
-          description: "Fixing the login issue that some users are facing.",
-          comments: [],
-        },
-        {
-          id: 5,
-          title: "Performance Optimization",
-          category: "Enhancement",
-          upvotes: 7,
-          status: "In-Progress",
-          description: "Optimizing the app for better performance.",
-          comments: [],
-        },
-      ],
-    },
-    Live: {
-      name: "Live",
-      items: [],
-    },
-  };
+type Columns = Record<string, ColumnType>;
 
-  const [columns, setColumns] = useState(initialData);
+const Roadmap = () => {
+  const queryClient = useQueryClient();
+
+  // Fetch feedbacks using React Query
+  const {
+    isLoading,
+    isError,
+    data: feedbacks,
+    error,
+  } = useQuery<FeedbackItem[], Error>({
+    queryKey: ["getFeedbacks"],
+    queryFn: getFeedbacksAPI,
+  });
+
+  // Initialize columns state
+  const [columns, setColumns] = useState<Columns>({
+    Planned: { name: "Planned", items: [] },
+    "In-Progress": { name: "In-Progress", items: [] },
+    Live: { name: "Live", items: [] },
+  });
+
   const [activeTab, setActiveTab] = useState("Planned");
+
+  // Organize feedbacks into columns based on status
+  useEffect(() => {
+    if (feedbacks) {
+      const updatedColumns: Columns = {
+        Planned: { name: "Planned", items: [] },
+        "In-Progress": { name: "In-Progress", items: [] },
+        Live: { name: "Live", items: [] },
+      };
+
+      feedbacks.forEach((feedback) => {
+        const status = feedback.status;
+        if (status && updatedColumns[status]) {
+          updatedColumns[status].items.push(feedback);
+        }
+      });
+
+      setColumns(updatedColumns);
+    }
+  }, [feedbacks]);
+
+  // Mutation to update feedback status
+  const updateFeedbackMutation = useMutation({
+    mutationFn: (updatedFeedback: FeedbackItem) => {
+      const { title, category, status, description } = updatedFeedback;
+      const validCategory: "Feature" | "UI" | "UX" | "Enhancement" | "Bug" =
+        category as "Feature" | "UI" | "UX" | "Enhancement" | "Bug"; // Type assertion
+      return updateFeedback(updatedFeedback._id, {
+        title,
+        category: validCategory,
+        status,
+        description,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["getFeedbacks"] });
+    },
+  });
 
   // Handle drag end
   const onDragEnd = (result: DropResult) => {
@@ -124,7 +106,8 @@ const Roadmap = () => {
     const destItems = Array.from(destColumn.items);
     const [movedItem] = sourceItems.splice(source.index, 1);
 
-    movedItem.status = destColumn.name; // Update the status of the moved item
+    // Update the status of the moved item
+    movedItem.status = destColumn.name as FeedbackStatus;
 
     destItems.splice(destination.index, 0, movedItem);
 
@@ -139,6 +122,9 @@ const Roadmap = () => {
         items: destItems,
       },
     });
+
+    // Update the feedback status on the server
+    updateFeedbackMutation.mutate(movedItem);
   };
 
   // Tab Labels, Descriptions, and Colors
@@ -160,6 +146,18 @@ const Roadmap = () => {
     },
   };
 
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (isError) {
+    return (
+      <div className="max-w-4xl px-6 mx-auto py-8">
+        <p className="text-red-500">Error: {error?.message}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="md:px-12 md:pt-10 max-w-7xl mx-auto">
       <div className="bg-[#373F68] w-full px-6 md:px-12 py-8 md:rounded flex items-center justify-between">
@@ -174,7 +172,9 @@ const Roadmap = () => {
           <h2 className="text-white text-xl font-bold mt-2">Roadmap</h2>
         </div>
 
-        <Button>+ Add Feedback</Button>
+        <Link to="/new-feedback">
+          <Button>+ Add Feedback</Button>
+        </Link>
       </div>
 
       {/* Tabs for Mobile Screens */}
@@ -235,8 +235,8 @@ const Roadmap = () => {
                   >
                     {column.items.map((feedback, index) => (
                       <Draggable
-                        key={feedback.id}
-                        draggableId={`${feedback.id}`}
+                        key={feedback._id}
+                        draggableId={feedback._id}
                         index={index}
                       >
                         {(provided, snapshot) => (
@@ -271,7 +271,7 @@ const Roadmap = () => {
         <div className="mt-4">
           {columns[activeTab].items.map((feedback) => (
             <FeedbackCard
-              key={feedback.id}
+              key={feedback._id}
               feedback={feedback}
               mobile={true}
               inRoadmap={true}
