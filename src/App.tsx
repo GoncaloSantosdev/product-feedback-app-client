@@ -7,6 +7,7 @@ import {
   NewFeedback,
   Roadmap,
   Suggestions,
+  NotFound,
 } from "./pages";
 
 const App = () => {
@@ -18,6 +19,7 @@ const App = () => {
       <Route path="/new-feedback" element={<NewFeedback />} />
       <Route path="/edit-feedback/:feedbackId" element={<EditFeedback />} />
       <Route path="/roadmap" element={<Roadmap />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

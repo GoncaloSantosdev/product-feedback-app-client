@@ -17,9 +17,20 @@ import { Button, FormField, LoadingSpinner } from "../components";
 // Assets
 import ArrowLeft from "../assets/shared/icon-arrow-left.svg";
 import iconNewFeedback from "../assets/shared/icon-new-feedback.svg";
+// Toast
+import { toast } from "react-toastify";
 
 const categoryOptions = ["Feature", "UI", "UX", "Enhancement", "Bug"] as const;
 type Category = (typeof categoryOptions)[number];
+
+// Define a specific error type
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 const NewFeedback = () => {
   const {
@@ -46,17 +57,20 @@ const NewFeedback = () => {
   const feedbackMutation = useMutation({
     mutationKey: ["createFeedback"],
     mutationFn: createFeedbackAPI,
+    onSuccess: () => {
+      navigate("/suggestions");
+    },
+    onError: (error) => {
+      toast.error((error as ApiError)?.response?.data?.message);
+    },
   });
 
   const onSubmit = (data: FeedbackData) => {
     feedbackMutation.mutate(data);
-    navigate("/suggestions");
   };
 
   // Mutation states
   const isLoading = feedbackMutation.isPending;
-  const isError = feedbackMutation.isError;
-  const error = feedbackMutation.error;
 
   return (
     <div className="max-w-2xl px-6 mx-auto py-12">
@@ -71,10 +85,8 @@ const NewFeedback = () => {
         <div className="absolute top-[-24px]">
           <img src={iconNewFeedback} alt="New Feedback" className="w-14" />
         </div>
-
         {isLoading && <LoadingSpinner />}
-        {isError && <p>{error?.message}</p>}
-
+        {/* Display error message if exists */}
         <h3 className="text-lg font-bold text-[#3A4374] mt-8">
           Create New Feedback
         </h3>

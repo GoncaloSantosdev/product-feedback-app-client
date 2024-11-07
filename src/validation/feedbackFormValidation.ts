@@ -14,9 +14,11 @@ export const feedbackFormSchema = z.object({
   category: z.enum(categoryOptions, {
     errorMap: () => ({ message: "Category is required" }),
   }),
-  status: z.enum(statusOptions, {
-    errorMap: () => ({ message: "Status is required" }),
-  }),
+  status: z
+    .enum(statusOptions, {
+      errorMap: () => ({ message: "Status is required" }),
+    })
+    .optional(),
   description: z
     .string()
     .min(10, { message: "Description must be at least 10 characters" })
