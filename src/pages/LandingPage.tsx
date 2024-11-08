@@ -1,7 +1,13 @@
+// Components
 import { Button } from "../components"; // Adjust the import path as needed
+// Clerk
+import { useClerk } from "@clerk/clerk-react";
+// Assets
 import illustration from "../assets/suggestions/illustration-empty.svg";
 
 const LandingPage = () => {
+  const { openSignIn } = useClerk();
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F4FF]">
       {/* Header Section */}
@@ -24,7 +30,17 @@ const LandingPage = () => {
           <span className="font-bold">Others:</span> Clerk.
         </p>
         <div className="flex gap-x-4 justify-center mt-6">
-          <Button variant="primary">Log in with Google</Button>
+          <Button
+            variant="primary"
+            onClick={() =>
+              openSignIn({
+                forceRedirectUrl: "/suggestions",
+              })
+            }
+          >
+            Register
+          </Button>
+
           <Button variant="secondary">Demo User</Button>
         </div>
       </div>

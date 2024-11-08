@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+// Clerk
+import { UserButton, useUser } from "@clerk/clerk-react";
 // Components
 import { Button } from "./";
 // Images
@@ -8,6 +10,7 @@ import lightbulbIcon from "../assets/suggestions/icon-suggestions.svg";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState("Most Upvotes");
+  const { isSignedIn } = useUser();
 
   const sortOptions = [
     "Most Upvotes",
@@ -79,9 +82,12 @@ const Header = () => {
           )}
         </div>
       </div>
-      <Link to={"/new-feedback"}>
-        <Button variant="primary">+ Add Feedback</Button>
-      </Link>
+      <div className="flex items-center gap-x-4">
+        <Link to={"/new-feedback"}>
+          <Button variant="primary">+ Add Feedback</Button>
+        </Link>
+        {isSignedIn && <UserButton />}
+      </div>
     </div>
   );
 };
